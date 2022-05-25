@@ -7,29 +7,30 @@ const DEFAULT_CART_STATE = {
 };
 
 const cartReducer = (state, action) => {
-  let currTotalAmount = 0;
+  let updateItem;
+  let updateItems;
+  let currTotalAmount;
   switch (action.type) {
     case "ADD":
-      let isExist = state.items.findIndex(
-        (item) => item.id === action.items.id
-      );
-      if (isExist === -1) {
-        state.items.push(action.items);
+      const {items}=action;
+      let addItemIndex = state.items.findIndex((item) => item.id === items.id)
+      if (addItemIndex === -1) {
+        updateItems = state.items.concat(items);
       } else {
-        state.items[isExist].amount += action.items.amount;
-        state.items[isExist].amount =
-          state.items[isExist].amount > 5 ? 5 : state.items[isExist].amount;
+        updateItem = {
+          ...state.items[addItemIndex],
+          amount: state.items[addItemIndex].amount + items.amount
+        }
+        updateItems = [...state.items];
+        updateItems[addItemIndex] = updateItem;
       }
-      currTotalAmount = state.items.reduce((accumulator, currentValue) => {
-        return accumulator + currentValue.amount * currentValue.price;
-      }, 0);
-      state.totalAmount = Math.round(currTotalAmount * 100) / 100;
-      return { items: state.items, totalAmount: state.totalAmount };
+      currTotalAmount = Math.round((state.totalAmount + items.price * items.amount) * 100) / 100;
+      return { items: updateItems, totalAmount: currTotalAmount };
     case "REMOVE":
-      let itemIndex = state.items.findIndex((item) => item.id === action.id);
-      state.items[itemIndex].amount -= 1;
-      if (state.items[itemIndex].amount === 0) {
-        state.items.splice(itemIndex, 1);
+      let removeItemIndex = state.items.findIndex((item) => item.id === action.id);
+      state.items[removeItemIndex].amount -= 1;
+      if (state.items[removeItemIndex].amount === 0) {
+        state.items.splice(removeItemIndex, 1);
       }
       currTotalAmount = state.items.reduce((accumulator, currentValue) => {
         return accumulator + currentValue.amount * currentValue.price;
